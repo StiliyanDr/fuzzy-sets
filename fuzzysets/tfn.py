@@ -146,21 +146,21 @@ class TriangularFuzzyNumber:
         return not self == other
 
     def __lt__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.__n == other.__n and
+        self.__class__.__verify_has_same_type(other)
+        return (self.__n == other.__n and
                 ((self.__l > other.__l and self.__r <= other.__r) or
                  (self.__l >= other.__l and self.__r < other.__r)))
 
     def __gt__(self, other):
-        return (isinstance(other, self.__class__) and
-                other < self)
+        self.__class__.__verify_has_same_type(other)
+        return other < self
 
     def __le__(self, other):
         return self == other or self < other
 
     def __ge__(self, other):
-        return (isinstance(other, self.__class__) and
-                other <= self)
+        self.__class__.__verify_has_same_type(other)
+        return other <= self
 
     def __iter__(self):
         """
