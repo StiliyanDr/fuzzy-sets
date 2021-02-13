@@ -17,86 +17,6 @@ class TriangularFuzzyNumber:
         mu(x) = (x - l) / (n - l), l <= x <= n
         mu(x) = (r - x) / (r - n), n <= x <= r
     """
-    class AlphaCut:
-        """
-        Represents the alpha-cut of a TFN, parameterised by alpha:
-        [left + alpha * (peak - left), right - alpha (right - peak)] =
-        [a + alpha * b, c - alpha * d] = [p, q]
-        """
-        @classmethod
-        def for_tfn(cls, tfn):
-            """
-            :param tfn: a TriangularFuzzyNumber instance.
-            """
-            p = Polynomial([tfn.left, tfn.peak - tfn.left])
-            q = Polynomial([tfn.right, tfn.peak - tfn.right])
-
-            return cls(p, q)
-
-        def __init__(self, p, q):
-            """
-            Non-public constructor.
-            """
-            self.__p = p
-            self.__q = q
-
-        def _add(self, other):
-            return self.__class__(
-                self.__p + other.__p,
-                self.__q + other.__q
-            )
-
-        def _sub(self, other):
-            return self.__class__(
-                self.__p - other.__q,
-                self.__q - other.__p
-            )
-
-        def _mul(self, other):
-            return self.__class__(
-                self.__p * other.__p,
-                self.__q * other.__q
-            )
-
-        def _div(self, other):
-            return self.__class__(
-                self.__p // other.__q,
-                self.__q // other.__p
-            )
-
-        def for_alpha(self, alpha):
-            """
-            :param alpha: a float between 0 and 1.
-            :returns: a two tuple representing the range
-            [a + alpha * b, c - alpha * d]
-
-            :raises ValueError: if `alpha` is not a float in the range
-            [0, 1].
-            """
-            utils.verify_is_numeric(alpha)
-
-            if (0. <= alpha <= 1.):
-                return (
-                    self.__p(alpha),
-                    self.__q(alpha)
-                )
-            else:
-                raise ValueError("Alpha must be between 0 and 1!")
-
-        def __str__(self):
-            return f"[{self.__as_str()}]"
-
-        def __as_str(self):
-            a, b = self.__p.coef[:2]
-            c, d = self.__q.coef[:2]
-
-            return (f"{a} + alpha * {b}, "
-                    f"{c} + alpha * {d}")
-
-        def __repr__(self):
-            return (f"{self.__class__.__name__}("
-                    f"{self.__as_str()})")
-
     __PEAK_OFFSET = 1.
 
     @classmethod
@@ -129,7 +49,7 @@ class TriangularFuzzyNumber:
         self.__set_peak(utils.to_float_if_int(n))
         self.__set_left(utils.to_float_if_int(l))
         self.__set_right(utils.to_float_if_int(r))
-        self.__alpha_cut = self.__class__.AlphaCut.for_tfn(self)
+        self.__alpha_cut = AlphaCut.for_tfn(self)
 
     def __set_peak(self, n):
         utils.verify_is_numeric(n)
@@ -281,3 +201,84 @@ class TriangularFuzzyNumber:
     @property
     def right(self):
         return self.__r
+
+
+class AlphaCut:
+    """
+    Represents the alpha-cut of a TFN, parameterised by alpha:
+    [left + alpha * (peak - left), right - alpha (right - peak)] =
+    [a + alpha * b, c - alpha * d] = [p, q]
+    """
+    @classmethod
+    def for_tfn(cls, tfn):
+        """
+        :param tfn: a TriangularFuzzyNumber instance.
+        """
+        p = Polynomial([tfn.left, tfn.peak - tfn.left])
+        q = Polynomial([tfn.right, tfn.peak - tfn.right])
+
+        return cls(p, q)
+
+    def __init__(self, p, q):
+        """
+        Non-public constructor.
+        """
+        self.__p = p
+        self.__q = q
+
+    def _add(self, other):
+        return self.__class__(
+            self.__p + other.__p,
+            self.__q + other.__q
+        )
+
+    def _sub(self, other):
+        return self.__class__(
+            self.__p - other.__q,
+            self.__q - other.__p
+        )
+
+    def _mul(self, other):
+        return self.__class__(
+            self.__p * other.__p,
+            self.__q * other.__q
+        )
+
+    def _div(self, other):
+        return self.__class__(
+            self.__p // other.__q,
+            self.__q // other.__p
+        )
+
+    def for_alpha(self, alpha):
+        """
+        :param alpha: a float between 0 and 1.
+        :returns: a two tuple representing the range
+        [a + alpha * b, c - alpha * d]
+
+        :raises ValueError: if `alpha` is not a float in the range
+        [0, 1].
+        """
+        utils.verify_is_numeric(alpha)
+
+        if (0. <= alpha <= 1.):
+            return (
+                self.__p(alpha),
+                self.__q(alpha)
+            )
+        else:
+            raise ValueError("Alpha must be between 0 and 1!")
+
+    def __str__(self):
+        return f"[{self.__as_str()}]"
+
+    def __as_str(self):
+        a, b = self.__p.coef[:2]
+        c, d = self.__q.coef[:2]
+
+        return (f"{a} + alpha * {b}, "
+                f"{c} + alpha * {d}")
+
+    def __repr__(self):
+        return (f"{self.__class__.__name__}("
+                f"{self.__as_str()})")
