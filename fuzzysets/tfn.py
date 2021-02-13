@@ -26,7 +26,7 @@ class TriangularFuzzyNumber:
         Equivalent to `TNF(t[1], t[0], t[2])`.
 
         :raises ValueError: if t is not a 3-tuple or the values are not
-        numeric (float) or the following condition is not met:
+        numeric or the following condition is not met:
         l < n < r.
         """
         if (isinstance(t, tuple) and len(t) == 3):
@@ -87,7 +87,7 @@ class TriangularFuzzyNumber:
         """
         Computes the membership degree of a real number.
 
-        :param x: a float.
+        :param x: a float or int.
         :returns: a float in the range [0, 1].
 
         :raises ValueError: if x is not a number.
@@ -109,9 +109,9 @@ class TriangularFuzzyNumber:
     def __operation(self, other, op_name):
         self.__class__.__verify_has_same_type(other)
         op = getattr(self.__alpha_cut, op_name)
-        result_alpha_cut = op(other.alpha_cut)
-        left, right = result_alpha_cut.for_alpha(0.)
-        peak = result_alpha_cut.for_alpha(1.)[0]
+        result_polys = op(other.alpha_cut)
+        left, right = result_polys(0.)
+        peak = result_polys(1.)[0]
 
         return self.__class__(peak, left, right)
 
@@ -179,8 +179,8 @@ class TriangularFuzzyNumber:
 
     def __repr__(self):
         return (f"{self.__class__.__name__}("
-                f"n={self.__n}, "
                 f"l={self.__l}, "
+                f"n={self.__n}, "
                 f"r={self.__r})")
 
     @property
@@ -227,27 +227,27 @@ class AlphaCut:
         self.__q = q
 
     def _add(self, other):
-        return self.__class__(
+        return _PolynomialPair(
             self.__p + other.__p,
             self.__q + other.__q
         )
 
     def _sub(self, other):
-        return self.__class__(
+        return _PolynomialPair(
             self.__p - other.__q,
             self.__q - other.__p
         )
 
     def _mul(self, other):
-        return self.__class__(
+        return _PolynomialPair(
             self.__p * other.__p,
             self.__q * other.__q
         )
 
     def _div(self, other):
-        return self.__class__(
-            self.__p // other.__q,
-            self.__q // other.__p
+        return _PolynomialPair(
+            (self.__p, other.__q),
+            (self.__q, other.__p)
         )
 
     def for_alpha(self, alpha):
@@ -282,3 +282,27 @@ class AlphaCut:
     def __repr__(self):
         return (f"{self.__class__.__name__}("
                 f"{self.__as_str()})")
+
+
+class _PolynomialPair:
+    """
+    Non-public class that represents the result of an operation on
+    TFN alpha cuts.
+    """
+    def __init__(self, lhs, rhs):
+        self.__lhs = lhs
+        self.__rhs = rhs
+
+    def __call__(self, x):
+        return (
+            self.__class__.__value_of(self.__lhs, x),
+            self.__class__.__value_of(self.__rhs, x)
+        )
+
+    @staticmethod
+    def __value_of(p, x):
+        if (isinstance(p, tuple)):
+            numerator, denominator = p
+            return numerator(x) / denominator(x)
+        else:
+            return p(x)
