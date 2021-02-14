@@ -12,10 +12,12 @@ def to_float_if_int(value):
 
 
 def validate_alpha(a):
-    verify_is_numeric(a)
+    if (not is_membership_degree(a)):
+        raise ValueError("Alpha must be a float between 0 and 1!")
 
-    if (not (0. <= a <= 1.)):
-        raise ValueError("Alpha must be between 0 and 1!")
+
+def is_membership_degree(d):
+    return isinstance(d, float) and 0. <= d <= 1.
 
 
 def verify_is_numeric(value):

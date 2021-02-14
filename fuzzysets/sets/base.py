@@ -37,12 +37,24 @@ class FuzzySet(abc.ABC):
         :param domain: an instance of type Domain.
         :param degrees: a NumPy array of floats in the range [0, 1] -
         the corresponding membership degrees.
+
+        :raises ValueError: if the degrees are invalid.
         """
+        self.__set_degrees(degrees)
         self.__domain = domain
-        self.__degrees = degrees
         self.__core = None
         self.__support = None
         self.__cross_over_points = None
+
+    def __set_degrees(self, degrees):
+        if (utils.is_membership_degree(degrees).all()):
+            self.__degrees = degrees
+        else:
+            raise ValueError("Membership degrees must be "
+                             "floats between 0 and 1!")
+
+    def _degree_at(self, i):
+        return self.__degrees[i]
 
     @abc.abstractmethod
     def mu(self, x):
@@ -309,7 +321,7 @@ class FuzzySet(abc.ABC):
         )
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self})"
+        return f"{self.__class__.__name__}({self.domain})"
 
     def __str__(self):
         """
