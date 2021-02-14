@@ -259,15 +259,10 @@ class AlphaCut:
         :raises ValueError: if `alpha` is not a float in the range
         [0, 1].
         """
-        utils.verify_is_numeric(alpha)
+        alpha = utils.to_float_if_int(alpha)
+        utils.validate_alpha(alpha)
 
-        if (0. <= alpha <= 1.):
-            return (
-                self.__p(alpha),
-                self.__q(alpha)
-            )
-        else:
-            raise ValueError("Alpha must be between 0 and 1!")
+        return (self.__p(alpha), self.__q(alpha))
 
     def __str__(self):
         return f"[{self.__as_str()}]"

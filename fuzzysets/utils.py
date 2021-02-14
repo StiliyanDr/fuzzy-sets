@@ -11,6 +11,13 @@ def to_float_if_int(value):
             else value)
 
 
+def validate_alpha(a):
+    verify_is_numeric(a)
+
+    if (not (0. <= a <= 1.)):
+        raise ValueError("Alpha must be between 0 and 1!")
+
+
 def verify_is_numeric(value):
     if (not isinstance(value, float)):
         raise ValueError(
@@ -18,7 +25,5 @@ def verify_is_numeric(value):
         )
 
 
-def sign_of(number):
-    return ("+"
-            if (number >= 0)
-            else "-")
+def complement(x):
+    return 1. - x
