@@ -47,7 +47,7 @@ class FuzzySet(abc.ABC):
         self.__cross_over_points = None
 
     def __set_degrees(self, degrees):
-        if (utils.is_membership_degree(degrees).all()):
+        if (utils.is_membership_degree_v(degrees).all()):
             self.__degrees = degrees
         else:
             raise ValueError("Membership degrees must be "
@@ -330,7 +330,7 @@ class FuzzySet(abc.ABC):
         where <x i> and <d i> are the elements of the set and their
         membership degrees, respectively.
         """
-        return "+".join(f"{x}/{d}" for x, d in self)
+        return " + ".join(f"{x}/{d:.2f}" for x, d in self)
 
 
 def t_norm(a, b, norm=min):
