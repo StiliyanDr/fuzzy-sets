@@ -1,3 +1,5 @@
+import numpy as np
+
 
 def default_if_none(value, default):
     return (value
@@ -18,6 +20,11 @@ def validate_alpha(a):
 
 def is_membership_degree(d):
     return isinstance(d, float) and 0. <= d <= 1.
+
+
+is_membership_degree_v = np.vectorize(
+    is_membership_degree
+)
 
 
 def verify_is_numeric(value):
