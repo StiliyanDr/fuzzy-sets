@@ -91,8 +91,9 @@ class ContinuousFuzzySet(base.FuzzySet):
 
         :raises ValueError: if the degrees returned by `mu` are invalid.
         """
+        mu = np.vectorize(mu)
         self.__class__.__validate_domain(domain)
-        index = np.array(domain)
+        index = np.array(list(domain))
         degrees = mu(index)
         super().__init__(domain, degrees)
         self.__index = index
@@ -131,7 +132,7 @@ class ContinuousFuzzySet(base.FuzzySet):
 
     def __calculate_mu(self, x, i):
         try:
-            return self.__mu(x)
+            return self.__mu(x).item()
         except Exception:
             return (self._degree_at(i - 1) + self._degree_at(i)) / 2.
 
