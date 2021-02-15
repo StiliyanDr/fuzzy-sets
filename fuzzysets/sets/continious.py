@@ -96,6 +96,7 @@ class ContinuousFuzzySet(base.FuzzySet):
         degrees = mu(index)
         super().__init__(domain, degrees)
         self.__index = index
+        self.__mu = mu
 
     @staticmethod
     def __validate_domain(d):
@@ -122,11 +123,17 @@ class ContinuousFuzzySet(base.FuzzySet):
 
         return (self._degree_at(i)
                 if (self.__index[i] == x)
-                else (self._degree_at(i - 1) + self._degree_at(i)) / 2.)
+                else self.__calculate_mu(x, i))
 
     def __index_for(self, x):
         assert self.__index[0] <= x <= self.__index[-1]
         return np.searchsorted(self.__index, x, side="left")
+
+    def __calculate_mu(self, x, i):
+        try:
+            return self.__mu(x)
+        except Exception:
+            return (self._degree_at(i - 1) + self._degree_at(i)) / 2.
 
     def _select_between_domains(self, other):
         """
