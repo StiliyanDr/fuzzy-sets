@@ -48,7 +48,7 @@ class FiniteFuzzySet(base.FuzzySet):
         :raises ValueError: if the degrees are invalid.
         """
         domain = FiniteDomain(elements.keys())
-        degrees = np.array(elements[x] for x in domain)
+        degrees = np.array([elements[x] for x in domain])
         super().__init__(domain, degrees)
 
         self.__indexes = {
