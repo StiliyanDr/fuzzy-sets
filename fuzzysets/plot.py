@@ -17,6 +17,17 @@ _Y_LABEL = "μ(x)"
 def plot_tfn_operations(first_name="A",
                         second_name="B",
                         x_lim=_X_LIMITS):
+    """
+    Reads two TFNs as input and plots the results of their addition,
+    subtraction, multiplication and division.
+
+    :param first_name: a str - the name for the first TFN. Defaults to
+    'A'.
+    :param second_name: a str - the name for the second TFN. Defaults
+    to 'B'.
+    :param x_lim: a pair of floats - the limits on the x axis of the
+    plot. Defaults to X_LIMITS.
+    """
     lhs, rhs = _read_numbers(x_lim, first_name, second_name)
 
     if (lhs is not None and rhs is not None):
@@ -152,6 +163,21 @@ def plot_fuzzy_set_operations(a,
                               t_norm=min,
                               s_norm=max,
                               comp=utils.complement):
+    """
+    Plots the complements, t-norm and s-norm of two fuzzy sets of the
+    same type.
+
+    :param a: a FuzzySet.
+    :param b: a FuzzySet whose type is the same as `a`'s.
+    :param a_name: a str - the name of the first set. Defaults to 'A'.
+    :param b_name: a str - the name of the second set. Defaults to 'B'.
+    :param t_norm: a callable to use for t-norm, see `t_norm`. Defaults
+    to min.
+    :param s_norm: a callable to use for s-norm, see `s_norm`. Defaults
+    to max.
+    :param comp: a callable to use for complement, see `complement`.
+    Defaults to `1 - x`.
+    """
     if (isinstance(a, FuzzySet) and
         type(a) == type(b) and
         a.domain == b.domain):
@@ -235,6 +261,14 @@ def _set_up_and_plot_norm_on(axes,
 
 
 def plot_fuzzy_set(s, title="", x_label="x", y_label=_Y_LABEL):
+    """
+    :param s: an instance of FuzzySet.
+    :param title: an optional str - the title of the plot.
+    :param x_label: a str - the label for the x axis of the plot.
+    Defaults to 'x'.
+    :param y_label: a str - the label for the y axis of the plot.
+    Defaults to Y_LABEL.
+    """
     if (isinstance(s, FuzzySet)):
         _, axes = plt.subplots()
         xs = np.array(list(s.domain))
