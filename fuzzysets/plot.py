@@ -156,6 +156,15 @@ def _set_up(axes,
     axes.set_ylabel(y_label)
 
 
+def plot_tfn(tfn, name="A"):
+    """
+    :param tfn: an instance of TriangularFuzzyNumber.
+    :param name: a str - the name of the TFN. Defaults to 'A'.
+    """
+    _, axes = plt.subplots()
+    _set_up_and_plot_on(axes, tfn, name)
+
+
 def plot_fuzzy_set_operations(a,
                               b,
                               a_name="A",
