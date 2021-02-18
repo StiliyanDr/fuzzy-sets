@@ -6,6 +6,10 @@
 # fuzzysets
 **fuzzysets** is a simple Python package that is well suited for interactive experiments with fundamental concepts in fuzzy set theory.  
 
+# Installation
+The package is available on [PYPI](https://pypi.org/project/fuzzysets/0.0.1/) and can be installed with pip:  
+`pip install fuzzysets`  
+
 # Notation
 In the following sections, code snippets will be highlighted `like this`. Examples involving a read-evaluate-print loop will show both the Python statement, which will be preceded by a `>>>` prompt, and its output, if any.  
 
