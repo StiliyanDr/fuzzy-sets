@@ -1,3 +1,9 @@
+from typing import (
+    Callable,
+    Tuple,
+    TypeVar,
+)
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,15 +14,21 @@ from fuzzysets.sets.finite import FiniteFuzzySet
 from fuzzysets.tfn import TriangularFuzzyNumber as TFN
 
 
+FuzzySetT = TypeVar("FuzzySetT", bound=FuzzySet)
+
+
+NormFunction = Callable[[float, float], float]
+
+
 _X_LIMITS = (0., 10.)
 
 
 _Y_LABEL = "μ(x)"
 
 
-def plot_tfn_operations(first_name="A",
-                        second_name="B",
-                        x_lim=_X_LIMITS):
+def plot_tfn_operations(first_name: str = "A",
+                        second_name: str = "B",
+                        x_lim: Tuple[float, float] = _X_LIMITS) -> None:
     """
     Reads two TFNs as input and plots the results of their addition,
     subtraction, multiplication and division.
@@ -156,7 +168,7 @@ def _set_up(axes,
     axes.set_ylabel(y_label)
 
 
-def plot_tfn(tfn, name="A"):
+def plot_tfn(tfn: TFN, name: str = "A") -> None:
     """
     :param tfn: an instance of TriangularFuzzyNumber.
     :param name: a str - the name of the TFN. Defaults to 'A'.
@@ -165,13 +177,15 @@ def plot_tfn(tfn, name="A"):
     _set_up_and_plot_on(axes, tfn, name)
 
 
-def plot_fuzzy_set_operations(a,
-                              b,
-                              a_name="A",
-                              b_name="B",
-                              t_norm=min,
-                              s_norm=max,
-                              comp=utils.complement):
+def plot_fuzzy_set_operations(
+    a: FuzzySetT,
+    b: FuzzySetT,
+    a_name: str = "A",
+    b_name: str = "B",
+    t_norm: NormFunction = min,
+    s_norm: NormFunction = max,
+    comp: Callable[[float], float] = utils.complement
+) -> None:
     """
     Plots the complements, t-norm and s-norm of two fuzzy sets of the
     same type.
@@ -269,7 +283,10 @@ def _set_up_and_plot_norm_on(axes,
              connect=connect)
 
 
-def plot_fuzzy_set(s, title="", x_label="x", y_label=_Y_LABEL):
+def plot_fuzzy_set(s: FuzzySet,
+                   title: str = "",
+                   x_label: str = "x",
+                   y_label: str = _Y_LABEL) -> None:
     """
     :param s: an instance of FuzzySet.
     :param title: an optional str - the title of the plot.
