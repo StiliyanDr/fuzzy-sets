@@ -1,6 +1,14 @@
-from fuzzysets import utils
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from numpy.polynomial.polynomial import Polynomial
+
+from fuzzysets import utils
 
 
 class TriangularFuzzyNumber:
@@ -20,7 +28,7 @@ class TriangularFuzzyNumber:
     __PEAK_OFFSET = 1.
 
     @classmethod
-    def from_tuple(cls, t):
+    def from_tuple(cls, t: Tuple[float, float, float]) -> "TriangularFuzzyNumber":
         """
         Creates a TFN from a 3-tuple in the format (left, peak, right).
         Equivalent to `TNF(t[1], t[0], t[2])`.
@@ -35,7 +43,10 @@ class TriangularFuzzyNumber:
         else:
             raise ValueError("Expected a 3-tuple!")
 
-    def __init__(self, n=0., l=None, r=None):
+    def __init__(self,
+                 n: float = 0.,
+                 l: Optional[float] = None,
+                 r: Optional[float] = None) -> None:
         """
         :param n: a float or int - the peak of the FN. Defaults to 0.0.
         :param l: a float or int - the 'left' component of the FN. If
@@ -51,11 +62,11 @@ class TriangularFuzzyNumber:
         self.__set_right(utils.to_float_if_int(r))
         self.__alpha_cut = AlphaCut.for_tfn(self)
 
-    def __set_peak(self, n):
+    def __set_peak(self, n: float) -> None:
         utils.verify_is_numeric(n)
         self.__n = n
 
-    def __set_left(self, left):
+    def __set_left(self, left: Optional[float]) -> None:
         left = utils.default_if_none(
             left,
             self.__n - self.__class__.__PEAK_OFFSET
@@ -69,7 +80,7 @@ class TriangularFuzzyNumber:
                 f"l ({left}) >= n ({self.__n})!"
             )
 
-    def __set_right(self, right):
+    def __set_right(self, right: Optional[float]) -> None:
         right = utils.default_if_none(
             right,
             self.__n + self.__class__.__PEAK_OFFSET
@@ -83,7 +94,7 @@ class TriangularFuzzyNumber:
                 f"r ({right}) <= n ({self.__n})!"
             )
 
-    def mu(self, x):
+    def mu(self, x: float) -> float:
         """
         Computes the membership degree of a real number.
 
@@ -103,10 +114,12 @@ class TriangularFuzzyNumber:
             else (self.__r - x) / (self.__r - self.__n)
         )
 
-    def __add__(self, other):
+    def __add__(self, other: "TriangularFuzzyNumber") -> "TriangularFuzzyNumber":
         return self.__operation(other, op_name="_add")
 
-    def __operation(self, other, op_name):
+    def __operation(self,
+                    other: "TriangularFuzzyNumber",
+                    op_name: str) -> "TriangularFuzzyNumber":
         self.__class__.__verify_has_same_type(other)
         op = getattr(self.__alpha_cut, op_name)
         result_polys = op(other.alpha_cut)
@@ -116,53 +129,53 @@ class TriangularFuzzyNumber:
         return self.__class__(peak, left, right)
 
     @classmethod
-    def __verify_has_same_type(cls, other):
+    def __verify_has_same_type(cls, other: Any) -> None:
         if (not isinstance(other, cls)):
             raise TypeError(
                f"Expected an instance of {cls.__name__!r}!"
             )
 
-    def __sub__(self, other):
+    def __sub__(self, other: "TriangularFuzzyNumber") -> "TriangularFuzzyNumber":
         return self.__operation(other, op_name="_sub")
 
-    def __mul__(self, other):
+    def __mul__(self, other: "TriangularFuzzyNumber") -> "TriangularFuzzyNumber":
         return self.__operation(other, op_name="_mul")
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: "TriangularFuzzyNumber") -> "TriangularFuzzyNumber":
         return self.__operation(other, op_name="_div")
 
-    def __neg__(self):
+    def __neg__(self) -> "TriangularFuzzyNumber":
         return self.__class__(
             -self.__n,
             -self.__r,
             -self.__l
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (isinstance(other, self.__class__) and
                 tuple(self) == tuple(other))
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
-    def __lt__(self, other):
+    def __lt__(self, other: "TriangularFuzzyNumber") -> bool:
         self.__class__.__verify_has_same_type(other)
         return (self.__n == other.__n and
                 ((self.__l > other.__l and self.__r <= other.__r) or
                  (self.__l >= other.__l and self.__r < other.__r)))
 
-    def __gt__(self, other):
+    def __gt__(self, other: "TriangularFuzzyNumber") -> bool:
         self.__class__.__verify_has_same_type(other)
         return other < self
 
-    def __le__(self, other):
+    def __le__(self, other: "TriangularFuzzyNumber") -> bool:
         return self == other or self < other
 
-    def __ge__(self, other):
+    def __ge__(self, other: "TriangularFuzzyNumber") -> bool:
         self.__class__.__verify_has_same_type(other)
         return other <= self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[float]:
         """
         :returns: a generator which yields the `left`, `peak` and
         `right` properties of the TFN, in that order. This makes it
@@ -174,32 +187,32 @@ class TriangularFuzzyNumber:
         """
         return iter((self.__l, self.__n, self.__r))
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{self.__class__.__name__}("
                 f"l={self.__l}, "
                 f"n={self.__n}, "
                 f"r={self.__r})")
 
     @property
-    def alpha_cut(self):
+    def alpha_cut(self) -> "AlphaCut":
         """
         :returns: an instance of AlphaCut - the alpha cut of the TFN.
         """
         return self.__alpha_cut
 
     @property
-    def peak(self):
+    def peak(self) -> float:
         return self.__n
 
     @property
-    def left(self):
+    def left(self) -> float:
         return self.__l
 
     @property
-    def right(self):
+    def right(self) -> float:
         return self.__r
 
 
@@ -210,7 +223,7 @@ class AlphaCut:
     [a + alpha * b, c - alpha * d] = [p, q]
     """
     @classmethod
-    def for_tfn(cls, tfn):
+    def for_tfn(cls, tfn: TriangularFuzzyNumber) -> "AlphaCut":
         """
         :param tfn: a TriangularFuzzyNumber instance.
         """
@@ -219,38 +232,38 @@ class AlphaCut:
 
         return cls(p, q)
 
-    def __init__(self, p, q):
+    def __init__(self, p: Polynomial, q: Polynomial) -> None:
         """
         Non-public constructor.
         """
         self.__p = p
         self.__q = q
 
-    def _add(self, other):
+    def _add(self, other: "AlphaCut") -> "_PolynomialPair":
         return _PolynomialPair(
             self.__p + other.__p,
             self.__q + other.__q
         )
 
-    def _sub(self, other):
+    def _sub(self, other: "AlphaCut") -> "_PolynomialPair":
         return _PolynomialPair(
             self.__p - other.__q,
             self.__q - other.__p
         )
 
-    def _mul(self, other):
+    def _mul(self, other: "AlphaCut") -> "_PolynomialPair":
         return _PolynomialPair(
             self.__p * other.__p,
             self.__q * other.__q
         )
 
-    def _div(self, other):
+    def _div(self, other: "AlphaCut") -> "_PolynomialPair":
         return _PolynomialPair(
             (self.__p, other.__q),
             (self.__q, other.__p)
         )
 
-    def for_alpha(self, alpha):
+    def for_alpha(self, alpha: float) -> Tuple[float, float]:
         """
         :param alpha: a float between 0 and 1.
         :returns: a two tuple representing the range
@@ -264,17 +277,17 @@ class AlphaCut:
 
         return (self.__p(alpha), self.__q(alpha))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"[{self.__as_str()}]"
 
-    def __as_str(self):
+    def __as_str(self) -> str:
         a, b = self.__p.coef[:2]
         c, d = self.__q.coef[:2]
 
         return (f"{a} + alpha * {b}, "
                 f"{c} + alpha * {d}")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{self.__class__.__name__}("
                 f"{self.__as_str()})")
 
@@ -284,18 +297,23 @@ class _PolynomialPair:
     Non-public class that represents the result of an operation on
     TFN alpha cuts.
     """
-    def __init__(self, lhs, rhs):
+    PolynomialTuple = Tuple[Polynomial, Polynomial]
+
+    def __init__(self,
+                 lhs: Union[Polynomial, PolynomialTuple],
+                 rhs: Union[Polynomial, PolynomialTuple]) -> None:
         self.__lhs = lhs
         self.__rhs = rhs
 
-    def __call__(self, x):
+    def __call__(self, x: float) -> Tuple[float, float]:
         return (
             self.__class__.__value_of(self.__lhs, x),
             self.__class__.__value_of(self.__rhs, x)
         )
 
     @staticmethod
-    def __value_of(p, x):
+    def __value_of(p: Union[Polynomial, PolynomialTuple],
+                   x: float) -> float:
         if (isinstance(p, tuple)):
             numerator, denominator = p
             return numerator(x) / denominator(x)
