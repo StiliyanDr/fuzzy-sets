@@ -1,6 +1,8 @@
 from typing import (
     Any,
+    Callable,
     Iterator,
+    Type,
 )
 
 import numpy as np
@@ -87,10 +89,16 @@ class ContinuousFuzzySet(base.FuzzySet):
     Represents a fuzzy set whose domain is an interval of real numbers.
     """
     @classmethod
-    def _from_domain(cls, domain, mu):
+    def _from_domain(
+        cls: Type[base.FuzzySetT],
+        domain: ContinuousDomain,
+        mu: Callable[[float], float]
+    ) -> base.FuzzySetT:
         return cls(domain, mu)
 
-    def __init__(self, domain, mu):
+    def __init__(self,
+                 domain: ContinuousDomain,
+                 mu: Callable[[float], float]) -> None:
         """
         :param domain: an instance of ContinuousDomain.
         :param mu: a callable that takes elements of `domain` and
@@ -108,11 +116,11 @@ class ContinuousFuzzySet(base.FuzzySet):
         self.__mu = mu
 
     @staticmethod
-    def __validate_domain(d):
+    def __validate_domain(d: Any) -> None:
         if (not isinstance(d, ContinuousDomain)):
             raise ValueError("Invalid domain!")
 
-    def mu(self, x):
+    def mu(self, x: float) -> float:
         """
         :param x: a float - an element of the domain.
         :returns: the membership degree of `x`, if it is within the
@@ -127,24 +135,27 @@ class ContinuousFuzzySet(base.FuzzySet):
             else 0.
         )
 
-    def __mu_for(self, x):
+    def __mu_for(self, x: float) -> float:
         i = self.__index_for(x)
 
         return (self._degree_at(i)
                 if (self.__index[i] == x)
                 else self.__calculate_mu(x, i))
 
-    def __index_for(self, x):
+    def __index_for(self, x: float) -> int:
         assert self.__index[0] <= x <= self.__index[-1]
         return np.searchsorted(self.__index, x, side="left")
 
-    def __calculate_mu(self, x, i):
+    def __calculate_mu(self, x: float, i: int) -> float:
         try:
             return self.__mu(x).item()
         except Exception:
             return (self._degree_at(i - 1) + self._degree_at(i)) / 2.
 
-    def _select_between_domains(self, other):
+    def _select_between_domains(
+        self: base.FuzzySetT,
+        other: base.FuzzySetT
+    ) -> ContinuousDomain:
         """
         This method is invoked whenever two FS's have equal domains and
         one of them is needed, in case it matters which one it is.

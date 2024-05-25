@@ -1,7 +1,10 @@
 from typing import (
     Any,
+    Callable,
     Iterable,
     Iterator,
+    Mapping,
+    Type,
     TypeVar,
 )
 
@@ -43,13 +46,15 @@ class FiniteFuzzySet(base.FuzzySet):
     Represents a fuzzy set with a finite domain.
     """
     @classmethod
-    def _from_domain(cls, domain, mu):
+    def _from_domain(cls: Type[base.FuzzySetT],
+                     domain: FiniteDomain,
+                     mu: Callable[[T], float]) -> base.FuzzySetT:
         return cls({
             x: mu(x)
             for x in domain
         })
 
-    def __init__(self, elements):
+    def __init__(self, elements: Mapping[T, float]) -> None:
         """
         :param elements: an instance of abc.Mapping (like dict) whose
         keys are the set's elements and whose values are their
@@ -66,7 +71,7 @@ class FiniteFuzzySet(base.FuzzySet):
             for i, x in enumerate(domain)
         }
 
-    def mu(self, x):
+    def mu(self, x: T) -> float:
         """
         :param x: an element of the domain.
         :returns: the membership degree of `x`, if it is within the
