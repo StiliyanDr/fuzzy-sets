@@ -1,7 +1,15 @@
 import abc
 import operator
+from typing import (
+    Any,
+    Iterator,
+    TypeVar,
+)
 
 from fuzzysets import utils
+
+
+T = TypeVar("T")
 
 
 class Domain(abc.ABC):
@@ -9,7 +17,7 @@ class Domain(abc.ABC):
     An abstract class for domain of a fuzzy set.
     """
     @abc.abstractmethod
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         """
         :returns: a generator which yields the elements of the domain.
         The order of the elements is the same in each call.
@@ -17,14 +25,14 @@ class Domain(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         pass
 
     @abc.abstractmethod
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         pass
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
 

@@ -1,3 +1,8 @@
+from typing import (
+    Any,
+    Iterator,
+)
+
 import numpy as np
 
 from fuzzysets import utils
@@ -12,7 +17,10 @@ class ContinuousDomain(base.Domain):
     Represents the domain of a continuous fuzzy set - a range of real
     numbers: [start, end].
     """
-    def __init__(self, start, end, step=_STEP):
+    def __init__(self,
+                 start: float,
+                 end: float,
+                 step: float = _STEP) -> None:
         """
         :param start: a float - the range start.
         :param end: a float - the range end.
@@ -37,40 +45,40 @@ class ContinuousDomain(base.Domain):
         else:
             raise ValueError("Invalid range!")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[float]:
         current = self.__start
 
         while current <= self.__end:
             yield current
             current += self.__step
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         item = utils.to_float_if_int(item)
 
         return (isinstance(item, float) and
                 self.__start <= item <= self.__end)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) ->  bool:
         return (isinstance(other, self.__class__) and
                 self.__start == other.__start and
                 self.__end == other.__end)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"{self.__class__.__name__}("
                 f"start={self.__start}, "
                 f"end={self.__end}, "
                 f"step={self.__step})")
 
     @property
-    def start(self):
+    def start(self) -> float:
         return self.__start
 
     @property
-    def end(self):
+    def end(self) -> float:
         return self.__end
 
     @property
-    def step(self):
+    def step(self) -> float:
         return self.__step
 
 

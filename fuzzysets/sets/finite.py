@@ -1,30 +1,40 @@
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    TypeVar,
+)
+
 import numpy as np
 
 from fuzzysets.sets import base
+
+
+T = TypeVar("T")
 
 
 class FiniteDomain(base.Domain):
     """
     Represents the domain of a finite fuzzy set.
     """
-    def __init__(self, items):
+    def __init__(self, items: Iterable[T]) -> None:
         """
         :param items: an iterable of hashable items.
         """
         self.__items = set(items)
         self.__sequenced_items = list(self.__items)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         return iter(self.__sequenced_items)
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         return item in self.__items
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (isinstance(other, self.__class__) and
                 self.__items == other.__items)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__items})"
 
 
