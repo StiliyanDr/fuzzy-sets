@@ -1,7 +1,27 @@
 import abc
 import operator
+from typing import (
+    Any,
+    Callable,
+    FrozenSet,
+    Iterable,
+    Iterator,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+)
+
+import numpy as np
 
 from fuzzysets import utils
+
+
+T = TypeVar("T")
+
+FuzzySetT = TypeVar("FuzzySetT", bound="FuzzySet")
+
+NormFunction = Callable[[float, float], float]
 
 
 class Domain(abc.ABC):
@@ -9,7 +29,7 @@ class Domain(abc.ABC):
     An abstract class for domain of a fuzzy set.
     """
     @abc.abstractmethod
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         """
         :returns: a generator which yields the elements of the domain.
         The order of the elements is the same in each call.
@@ -17,14 +37,14 @@ class Domain(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         pass
 
     @abc.abstractmethod
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         pass
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
 
@@ -32,7 +52,7 @@ class FuzzySet(abc.ABC):
     """
     An abstract class for fuzzy set.
     """
-    def __init__(self, domain, degrees):
+    def __init__(self, domain: Domain, degrees: np.ndarray) -> None:
         """
         :param domain: an instance of type Domain.
         :param degrees: a NumPy array of floats in the range [0, 1] -
@@ -46,18 +66,18 @@ class FuzzySet(abc.ABC):
         self.__support = None
         self.__cross_over_points = None
 
-    def __set_degrees(self, degrees):
+    def __set_degrees(self, degrees: np.ndarray) -> None:
         if (utils.is_membership_degree_v(degrees).all()):
             self.__degrees = degrees
         else:
             raise ValueError("Membership degrees must be "
                              "floats between 0 and 1!")
 
-    def _degree_at(self, i):
+    def _degree_at(self, i: int) -> float:
         return self.__degrees[i]
 
     @abc.abstractmethod
-    def mu(self, x):
+    def mu(self, x: Any) -> float:
         """
         :param x: an element of the domain.
         :returns: the membership degree of `x`, if it is within the
@@ -66,29 +86,29 @@ class FuzzySet(abc.ABC):
         pass
 
     @property
-    def domain(self):
+    def domain(self) -> Domain:
         """
         :returns: an instance of type Domain - the set's domain.
         """
         return self.__domain
 
     @property
-    def range(self):
+    def range(self) -> Iterator[float]:
         """
         :returns: a generator of floats in the range [0, 1] - the set's
         range.
         """
         return (i for i in self.__degrees)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[T, float]]:
         """
-        :returns: an generator of pairs (x, d), where x is an element
+        :returns: a generator of pairs (x, d), where x is an element
         of the domain and d is its membership degree.
         """
         return zip(self.domain, self.range)
 
     @property
-    def core(self):
+    def core(self) -> FrozenSet[T]:
         """
         :returns: an immutable set of all the elements whose membership
         degree is 1.
@@ -99,7 +119,7 @@ class FuzzySet(abc.ABC):
         return self.__core
 
     @property
-    def support(self):
+    def support(self) -> FrozenSet[T]:
         """
         :returns: an immutable set of all the elements whose membership
         degree is positive.
@@ -110,7 +130,7 @@ class FuzzySet(abc.ABC):
         return self.__support
 
     @property
-    def cross_over_points(self):
+    def cross_over_points(self) -> FrozenSet[T]:
         """
         :returns: an immutable set of all the elements whose membership
         degree is 0.5.
@@ -122,7 +142,7 @@ class FuzzySet(abc.ABC):
 
         return self.__cross_over_points
 
-    def alpha_cut(self, alpha):
+    def alpha_cut(self, alpha: float) -> Set[T]:
         """
         :param alpha: a float between 0 and 1.
         :returns: a set of the elements whose membership degree is
@@ -134,14 +154,14 @@ class FuzzySet(abc.ABC):
         return {x for x, d in self if (d >= alpha)}
 
     @property
-    def height(self):
+    def height(self) -> float:
         """
         :returns: the highest membership degree in the set, 0.0 if it is
         empty.
         """
         return self.__degrees.max(initial=0.0)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """
         :param other: a value.
         :returns: a boolean value indicating whether `other` is a fuzzy
@@ -151,22 +171,28 @@ class FuzzySet(abc.ABC):
         return (isinstance(other, self.__class__) and
                 self.__pointwise_comparison(other, operator.eq))
 
-    def __pointwise_comparison(self, other, p, reduction=all):
+    def __pointwise_comparison(
+        self: FuzzySetT,
+        other: FuzzySetT,
+        p: Callable[[float, float], bool],
+        reduction: Callable[[Iterable[bool]], bool] = all
+    ) -> bool:
         return (self.domain == other.domain and
                 reduction(p(self.mu(x), other.mu(x))
                           for x in self._select_between_domains(other)))
 
-    def _select_between_domains(self, other):
+    def _select_between_domains(self: FuzzySetT,
+                                other: FuzzySetT) -> Domain:
         """
         This method is invoked whenever two FS's have equal domains and
         one of them is needed, in case it matters which one it is.
         """
         return self.domain
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
-    def __lt__(self, other):
+    def __lt__(self: FuzzySetT, other: FuzzySetT) -> bool:
         """
         Checks whether the fuzzy set is a proper subset of `other`.
 
@@ -184,13 +210,13 @@ class FuzzySet(abc.ABC):
                 self.__pointwise_comparison(other, operator.lt, any))
 
     @classmethod
-    def __verify_has_same_class(cls, other):
+    def __verify_has_same_class(cls, other: Any) -> None:
         if (not isinstance(other, cls)):
             raise TypeError(
                 f"Expected an instance of {cls.__name__!r}!"
             )
 
-    def __gt__(self, other):
+    def __gt__(self: FuzzySetT, other: FuzzySetT) -> bool:
         """
         Checks whether the fuzzy set is a proper superset of `other`.
 
@@ -200,7 +226,7 @@ class FuzzySet(abc.ABC):
         self.__class__.__verify_has_same_class(other)
         return other < self
 
-    def __le__(self, other):
+    def __le__(self: FuzzySetT, other: FuzzySetT) -> bool:
         """
         Checks whether the fuzzy set is a subset of `other`.
 
@@ -210,7 +236,7 @@ class FuzzySet(abc.ABC):
         self.__class__.__verify_has_same_class(other)
         return self.__pointwise_comparison(other, operator.le)
 
-    def __ge__(self, other):
+    def __ge__(self: FuzzySetT, other: FuzzySetT) -> bool:
         """
         Checks whether the fuzzy set is a superset of `other`.
 
@@ -220,7 +246,9 @@ class FuzzySet(abc.ABC):
         self.__class__.__verify_has_same_class(other)
         return other <= self
 
-    def __norm(self, other, norm):
+    def __norm(self: FuzzySetT,
+               other: FuzzySetT,
+               norm: NormFunction) -> FuzzySetT:
         self.__verify_has_same_class_and_domain(other)
 
         return self.__class__._from_domain(
@@ -228,7 +256,10 @@ class FuzzySet(abc.ABC):
             mu=lambda x: norm(self.mu(x), other.mu(x))
         )
 
-    def __verify_has_same_class_and_domain(self, other):
+    def __verify_has_same_class_and_domain(
+        self: FuzzySetT,
+        other: FuzzySetT
+    ) -> None:
         self.__class__.__verify_has_same_class(other)
 
         if (self.domain != other.domain):
@@ -237,7 +268,9 @@ class FuzzySet(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def _from_domain(cls, domain, mu):
+    def _from_domain(cls: Type[FuzzySetT],
+                     domain: Domain,
+                     mu: Callable[[T], float]) -> FuzzySetT:
         """
         :param domain: an instance of Domain.
         :param mu: a callable that takes elements of `domain` and
@@ -245,7 +278,9 @@ class FuzzySet(abc.ABC):
         """
         pass
 
-    def t_norm(self, other, norm=min):
+    def t_norm(self: FuzzySetT,
+               other: FuzzySetT,
+               norm: NormFunction = min) -> FuzzySetT:
         """
         Finds the t-norm of the fuzzy set and `other`.
 
@@ -272,7 +307,9 @@ class FuzzySet(abc.ABC):
         """
         return self.__norm(other, norm)
 
-    def s_norm(self, other, norm=max):
+    def s_norm(self: FuzzySetT,
+               other: FuzzySetT,
+               norm: NormFunction = max) -> FuzzySetT:
         """
         Finds the s-norm of the fuzzy set and `other`.
 
@@ -299,7 +336,10 @@ class FuzzySet(abc.ABC):
         """
         return self.__norm(other, norm)
 
-    def complement(self, comp=utils.complement):
+    def complement(
+        self: FuzzySetT,
+        comp: Callable[[float], float] = utils.complement
+    ) -> FuzzySetT:
         """
         Finds the complement of the fuzzy set.
 
@@ -320,10 +360,10 @@ class FuzzySet(abc.ABC):
             mu=lambda x: comp(self.mu(x))
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.domain})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         :returns: a str in the format:
         <x 0>/<d 0> + ... + <x n>/<d n>
@@ -333,28 +373,35 @@ class FuzzySet(abc.ABC):
         return " + ".join(f"{x}/{d:.2f}" for x, d in self)
 
 
-def t_norm(a, b, norm=min):
+def t_norm(a: FuzzySetT,
+           b: FuzzySetT,
+           norm: NormFunction = min) -> FuzzySetT:
     """
     Equivalent to `a.t_norm(b, norm)`.
     """
     return a.t_norm(b, norm)
 
 
-def s_norm(a, b, norm=max):
+def s_norm(a: FuzzySetT,
+           b: FuzzySetT,
+           norm: NormFunction = max) -> FuzzySetT:
     """
     Equivalent to `a.s_norm(b, norm)`.
     """
     return a.s_norm(b, norm)
 
 
-def complement(a, comp=utils.complement):
+def complement(
+    a: FuzzySetT,
+    comp: Callable[[float], float] = utils.complement
+) -> FuzzySetT:
     """
     Equivalent to `a.complement(comp)`.
     """
     return a.complement(comp)
 
 
-def alpha_cut(a, alpha):
+def alpha_cut(a: FuzzySet, alpha: float) -> Set[T]:
     """
     Equivalent to `a.alpha_cut(alpha)`.
     """
