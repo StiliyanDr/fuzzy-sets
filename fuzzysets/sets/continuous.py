@@ -130,8 +130,7 @@ class ContinuousFuzzySet(base.FuzzySet):
 
         return (
             self.__mu_for(x)
-            if (isinstance(x, float) and
-                self.__index[0] <= x <= self.__index[-1])
+            if (isinstance(x, float) and x in self.domain)
             else 0.
         )
 
@@ -139,18 +138,11 @@ class ContinuousFuzzySet(base.FuzzySet):
         i = self.__index_for(x)
 
         return (self._degree_at(i)
-                if (self.__index[i] == x)
-                else self.__calculate_mu(x, i))
+                if (i < len(self.__index) and self.__index[i] == x)
+                else self.__mu(x).item())
 
     def __index_for(self, x: float) -> int:
-        assert self.__index[0] <= x <= self.__index[-1]
         return np.searchsorted(self.__index, x, side="left")
-
-    def __calculate_mu(self, x: float, i: int) -> float:
-        try:
-            return self.__mu(x).item()
-        except Exception:
-            return (self._degree_at(i - 1) + self._degree_at(i)) / 2.
 
     def _select_between_domains(
         self: base.FuzzySetT,

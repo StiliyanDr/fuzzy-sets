@@ -67,7 +67,7 @@ class FuzzySet(abc.ABC):
         self.__cross_over_points = None
 
     def __set_degrees(self, degrees: np.ndarray) -> None:
-        if (utils.is_membership_degree_v(degrees).all()):
+        if (degrees.size == 0 or utils.is_membership_degree_v(degrees).all()):
             self.__degrees = degrees
         else:
             raise ValueError("Membership degrees must be "
